@@ -1,0 +1,22 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core"         
+         xmlns:d="jelly:define"                  
+         xmlns:f="/lib/form">
+ <f:block>
+  <d:taglib uri="local">
+    
+      <f:entry title="${%tricentisClientPath}" field="tricentisClientPath">
+        <f:textbox name="tricentisClientPath" default="$TRICENTIS_HOME\ToscaCI\Client\ToscaCIJavaClient.jar" value="${instance.getTricentisClientPath()}"/>
+      </f:entry>
+    
+   	  <f:entry title="${%endpoint}" field="endpoint">
+        <f:textbox name="endpoint" value="${instance.getEndpoint()}"/>
+      </f:entry>
+    
+      <f:entry title="${%configurationFilePath}" field="configurationFilePath">
+        <f:textbox name="configurationFilePath" value="${instance.getConfigurationFilePath()}"/>
+      </f:entry> 
+      
+  </d:taglib>
+</f:block>
+</j:jelly>

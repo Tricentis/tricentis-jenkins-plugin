@@ -71,8 +71,8 @@
 	</dependencies>
 
 	<scm>
-		<connection>scm:git:ssh://github.com/jenkinsci/tricentis-ci-plugin.git</connection>
-		<developerConnection>scm:git:ssh://github.com/jenkinsci/tricentis-ci-plugin.git</developerConnection>
+		<connection>scm:git:ssh://git@github.com/jenkinsci/tricentis-ci-plugin.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/jenkinsci/tricentis-ci-plugin.git</developerConnection>
 		<url>https://github.com/jenkinsci/tricentis-ci-plugin</url>
 		<tag>HEAD</tag>
 	</scm>

@@ -13,7 +13,7 @@
 	<version>1.0-SNAPSHOT</version>
 	<packaging>hpi</packaging>
 	
-	<description>Integrates Jenkins with Tricentis Continuous Integration System</description>
+	<description>Tricentis Continuous Integration plugin integrates Jenkins with Tricentis Tosca CI and allows users execute Tricentis Tosca tests via Jenkins</description>
 	<organization>
 		<name>Tricentis</name>
 		<url>https://www.tricentis.com/</url>

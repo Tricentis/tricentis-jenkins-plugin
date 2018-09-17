@@ -12,7 +12,7 @@
 	<artifactId>tricentis-ci</artifactId>
 	<version>1.0-SNAPSHOT</version>
 	<packaging>hpi</packaging>
-	
+
 	<description>Tricentis Continuous Integration plugin integrates Jenkins with Tricentis Tosca CI and allows users execute Tricentis Tosca tests via Jenkins</description>
 	<organization>
 		<name>Tricentis</name>
@@ -20,7 +20,14 @@
 	</organization>
 	<inceptionYear>2018</inceptionYear>
 	<url>https://wiki.jenkins.io/display/JENKINS/Tricentis+Continuous+Integration</url>
-	
+
+	<developers>
+		<developer>
+			<id>tricentis</id>
+			<name>Tricentis</name>			
+		</developer>
+	</developers>
+
 	<properties>
 		<jenkins.version>2.7.3</jenkins.version>
 		<java.level>7</java.level>
@@ -51,10 +58,10 @@
 			<version>1.23</version>
 		</dependency>
 		<dependency>
-            <groupId>org.jenkins-ci.plugins.workflow</groupId>
-            <artifactId>workflow-api</artifactId>
-            <version>2.22</version>            
-        </dependency>
+			<groupId>org.jenkins-ci.plugins.workflow</groupId>
+			<artifactId>workflow-api</artifactId>
+			<version>2.22</version>
+		</dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
@@ -62,7 +69,7 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-		
+
 	<scm>
 		<connection>scm:git:ssh://github.com/jenkinsci/tricentis-ci-plugin.git</connection>
 		<developerConnection>scm:git:ssh://github.com/jenkinsci/tricentis-ci-plugin.git</developerConnection>

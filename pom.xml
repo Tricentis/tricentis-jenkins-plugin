@@ -9,7 +9,7 @@
 	</parent>
 	<groupId>io.jenkins.plugins</groupId>
 	<artifactId>tricentis-ci</artifactId>
-	<version>1.1</version>
+	<version>1.2-SNAPSHOT</version>
 	<packaging>hpi</packaging>
 
 	<description>Tricentis Continuous Integration plugin integrates Jenkins with Tricentis Tosca CI and allows users execute Tricentis Tosca tests via Jenkins</description>
@@ -73,6 +73,6 @@
 		<connection>scm:git:ssh://git@github.com/jenkinsci/tricentis-ci-plugin.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/jenkinsci/tricentis-ci-plugin.git</developerConnection>
 		<url>https://github.com/jenkinsci/tricentis-ci-plugin</url>
-		<tag>tricentis-ci-1.1</tag>
+		<tag>HEAD</tag>
 	</scm>
 </project>

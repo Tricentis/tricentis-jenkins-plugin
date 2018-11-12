@@ -61,7 +61,7 @@ public class DefaultProcStarterFactory implements ProcStarterFactory {
 		}
 
 		builder.add(clientPath, MODE_SWITCH, DEFAULT_MODE, REPORT_TYPE_SWITH, JUNIT_REPORT_TYPE, SPEC_EXIT_CODE_SWITCH, SPEC_EXIT_CODE_VALUE, RESULTS_SWITCH,
-				new File(workspace.getRemote(), vars.expand(runner.getResultsFile())).getAbsolutePath());
+				workspace.child(vars.expand(runner.getResultsFile())).getRemote());
 		if (configPath != null) {
 			builder.add(CONFIG_SWITCH, vars.expand(configPath));
 		}

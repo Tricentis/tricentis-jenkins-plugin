@@ -1,6 +1,5 @@
 package com.tricentis.tosca.jenkins;
 
-import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.lang.StringUtils;
@@ -48,7 +47,7 @@ public class DefaultProcStarterFactory implements ProcStarterFactory {
 			if (StringUtils.isEmpty(javaHome)) {
 				throw new RuntimeException(Messages.setJavaHome());
 			}
-			application = javaHome + File.separator + "bin" + File.separator + "java";
+			application = new FilePath(launcher.getChannel(), javaHome).child("bin").child("java").getRemote();
 		} else {
 			application = null;
 		}

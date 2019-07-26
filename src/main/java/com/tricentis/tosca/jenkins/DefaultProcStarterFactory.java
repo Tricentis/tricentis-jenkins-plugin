@@ -1,7 +1,14 @@
 package com.tricentis.tosca.jenkins;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 
+import org.apache.commons.jelly.tags.core.UseBeanTag;
 import org.apache.commons.lang.StringUtils;
 
 import hudson.EnvVars;
@@ -31,6 +38,12 @@ public class DefaultProcStarterFactory implements ProcStarterFactory {
 	private static final String SPEC_EXIT_CODE_VALUE = "True";
 
 	private static final String JAVA_HOME = "JAVA_HOME";
+	private static final String CONFIG_FILE_PATH="/jenkins-tricentis/config.xml";
+	private static final String CONFIG_FILE_START = "<?xml version=\"1.0\" encoding=\"utf-16\" ?>\n" + "\n"
+			+ "<testConfiguration>\n" + "\n" + "   <TestEvents>";
+	private static final String CONFIG_FILE_END = "\n" + "    </TestEvents>\n" + "\n" + "</testConfiguration>";
+	private static final String TEST_EVENT_START = "\n" + "        <TestEvent>";
+	private static final String TEST_EVENT_END = "</TestEvent>";
 
 	@Override
 	public ProcStarter create(final TricentisCiBuilder runner, final Run<?, ?> run, final FilePath workspace, final Launcher launcher,
@@ -40,6 +53,7 @@ public class DefaultProcStarterFactory implements ProcStarterFactory {
 		final EnvVars vars = run.getEnvironment(listener);
 		clientPath = vars.expand(clientPath);
 		final String configPath = runner.getConfigurationFilePath();
+		final String testEvents = runner.getTestEvents();
 		final String endpoint = runner.getEndpoint();
 		final String application;
 		if (clientPath.toLowerCase().endsWith(".jar")) {
@@ -61,7 +75,12 @@ public class DefaultProcStarterFactory implements ProcStarterFactory {
 
 		builder.add(clientPath, MODE_SWITCH, DEFAULT_MODE, REPORT_TYPE_SWITH, JUNIT_REPORT_TYPE, SPEC_EXIT_CODE_SWITCH, SPEC_EXIT_CODE_VALUE, RESULTS_SWITCH,
 				workspace.child(vars.expand(runner.getResultsFile())).getRemote());
-		if (configPath != null) {
+		if (testEvents != null && !testEvents.isEmpty()) {
+			String path = BuildXmlFile(testEvents.split(";"),workspace);
+			if (path != null) {
+				builder.add(CONFIG_SWITCH, path);
+			}
+		} else if (configPath != null) {
 			builder.add(CONFIG_SWITCH, vars.expand(configPath));
 		}
 		if (endpoint != null) {
@@ -72,4 +91,32 @@ public class DefaultProcStarterFactory implements ProcStarterFactory {
 				.stdout(listener).envs(vars).pwd(workspace);
 	}
 
+	private String BuildXmlFile(String[] testEvents,FilePath workspace) {
+
+		File file;
+		try {
+			file = new File(workspace.createTempFile("temp-jenkins-tricentis", ".xml").toURI());
+		} catch (IOException e1) {
+			return null;
+		} catch (InterruptedException e1) {
+			return null;
+		}
+
+		try (BufferedWriter writer = new BufferedWriter(
+				new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
+
+			writer.write(CONFIG_FILE_START);
+			for (String testEvent : testEvents) {
+				writer.append(TEST_EVENT_START);
+				writer.append(testEvent);
+				writer.append(TEST_EVENT_END);
+			}
+			writer.append(CONFIG_FILE_END);
+		} catch (IOException e) {
+			// FileOutputStream exception
+			return null;
+		}
+		return file.getAbsolutePath().replace('\\', '/');
+
+	}
 }

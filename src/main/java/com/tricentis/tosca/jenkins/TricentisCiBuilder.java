@@ -42,6 +42,7 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 	private String tricentisClientPath;
 	private String configurationFilePath;
 	private String endpoint;
+	private String testEvents;
 
 	/**
 	 * Constructor.
@@ -89,6 +90,14 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 	@DataBoundSetter
 	public void setConfigurationFilePath(final String configurationFilePath) {
 		this.configurationFilePath = fixPath(configurationFilePath);
+	}
+	public String getTestEvents() {
+		return testEvents;
+	}
+
+	@DataBoundSetter
+	public void setTestEvents(final String testEvents) {
+		this.testEvents = testEvents;
 	}
 
 	public String getEndpoint() {
@@ -143,6 +152,7 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 		logger.println(Messages.endpoint() + ": " + (endpoint != null ? endpoint : ""));
 		logger.println(Messages.configurationFilePath() + ": " + (configurationFilePath != null ? configurationFilePath : ""));
 		logger.println(Messages.resultsFile() + ": " + getResultsFile());
+		logger.println(Messages.testEvents() + ": " + (testEvents != null ? testEvents : ""));
 	}
 
 	private void assertParameters() {

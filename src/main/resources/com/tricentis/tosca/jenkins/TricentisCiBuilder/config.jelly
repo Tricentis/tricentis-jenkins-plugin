@@ -12,7 +12,9 @@
    	  <f:entry title="${%endpoint}" field="endpoint">
         <f:textbox name="endpoint" value="${instance.getEndpoint()}" default="http://servername/DistributionServerService/ManagerService.svc"/>
       </f:entry>
-    
+      <f:entry title="${%testEvents}" field="testEvents">
+        <f:textbox name="testEvents" value="${instance.getTestEvents()}" default=""/>
+      </f:entry>
       <f:entry title="${%configurationFilePath}" field="configurationFilePath">
         <f:textbox name="configurationFilePath" value="${instance.getConfigurationFilePath()}" default="$TRICENTIS_HOME\ToscaCI\Client\Testconfig.xml"/>
       </f:entry>      

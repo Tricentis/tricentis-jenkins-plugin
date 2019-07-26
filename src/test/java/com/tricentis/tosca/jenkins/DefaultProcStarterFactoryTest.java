@@ -49,9 +49,11 @@ public class DefaultProcStarterFactoryTest {
 		final String endpoint = "/endpoint";
 		final String toscaRunnerPath = "$" + TRICENTIS_HOME + jarName;
 		final String confPath = conf + "$" + VAR;
+		final String testEvents = "";
 		final String endpointValue = "$" + VAR + endpoint;
 		final TricentisCiBuilder runner = new TricentisCiBuilder(toscaRunnerPath, endpointValue);
 		runner.setConfigurationFilePath(confPath);
+		runner.setTestEvents(testEvents);
 		final EnvVars envVars = createEnvVars();
 		envVars.put("JAVA_HOME", "javahome");
 		final FilePath workspace = new FilePath(new File(""));
@@ -79,10 +81,12 @@ public class DefaultProcStarterFactoryTest {
 	public void testCreateWithExeRunner() throws InterruptedException, IOException {
 		final String toscaRunnerPath = "ToscaCIClient.exe";
 		final String confPath = "conf";
+		final String testEvents = "";
 		final String endpoint = "endpoint";
 		final FilePath workspace = new FilePath(new File(""));
 		final TricentisCiBuilder runner = new TricentisCiBuilder(toscaRunnerPath, endpoint);
 		runner.setConfigurationFilePath(confPath);
+		runner.setTestEvents(testEvents);
 		final ProcStarter starter = createStarter(runner, createEnvVars(), workspace);
 
 		assertEquals(createExpectedCmd(null, toscaRunnerPath, confPath, endpoint, workspace), starter.cmds());

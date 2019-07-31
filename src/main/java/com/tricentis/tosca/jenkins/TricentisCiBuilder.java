@@ -43,6 +43,7 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 	private String configurationFilePath;
 	private String endpoint;
 	private String testEvents;
+	private static final String EMPTY_STRING = "";
 
 	/**
 	 * Constructor.
@@ -73,7 +74,7 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 	}
 
 	public String getTricentisClientPath() {
-		if (tricentisClientPath == null || tricentisClientPath.isEmpty())
+		if (tricentisClientPath == null)
 			return "$TRICENTIS_HOME\\ToscaCI\\Client\\ToscaCIJavaClient.jar";
 		return tricentisClientPath;
 	}
@@ -81,13 +82,13 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 	@DataBoundSetter
 	public void setTricentisClientPath(final String tricentisClientPath) {
 		if (tricentisClientPath == null || tricentisClientPath.trim().isEmpty())
-			this.tricentisClientPath = " ";
+			this.tricentisClientPath = EMPTY_STRING;
 		else
 			this.tricentisClientPath = fixPath(tricentisClientPath);
 	}
 
 	public String getConfigurationFilePath() {
-		if (configurationFilePath == null || configurationFilePath.isEmpty())
+		if (configurationFilePath == null)
 			return "$TRICENTIS_HOME\\ToscaCI\\Client\\Testconfig.xml";
 		return configurationFilePath;
 	}
@@ -95,27 +96,27 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 	@DataBoundSetter
 	public void setConfigurationFilePath(final String configurationFilePath) {
 		if (configurationFilePath == null || configurationFilePath.trim().isEmpty())
-			this.configurationFilePath = " ";
+			this.configurationFilePath = EMPTY_STRING;
 		else
 			this.configurationFilePath = fixPath(configurationFilePath);
 	}
 
 	public String getTestEvents() {
-		if (testEvents == null || testEvents.isEmpty())
-			return "";
+		if (testEvents == null)
+			return EMPTY_STRING;
 		return testEvents;
 	}
 
 	@DataBoundSetter
 	public void setTestEvents(final String testEvents) {
 		if (testEvents == null || testEvents.trim().isEmpty())
-			this.testEvents = " ";
+			this.testEvents = EMPTY_STRING;
 		else
 			this.testEvents = testEvents;
 	}
 
 	public String getEndpoint() {
-		if (endpoint == null || endpoint.trim().isEmpty())
+		if (endpoint == null)
 			return "http://servername/DistributionServerService/ManagerService.svc";
 		return endpoint;
 	}
@@ -123,7 +124,7 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 	@DataBoundSetter
 	public void setEndpoint(final String endpoint) {
 		if (endpoint == null || endpoint.trim().isEmpty())
-			this.endpoint = " ";
+			this.endpoint = EMPTY_STRING;
 		else
 			this.endpoint = Util.fixEmptyAndTrim(endpoint);
 	}
@@ -167,13 +168,11 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 
 	private void logParameters(final PrintStream logger) {
 		logger.println(Messages.runJobLog(Messages.pluginTitle()));
-		logger.println(
-				Messages.tricentisClientPath() + ": " + (tricentisClientPath != null ? tricentisClientPath : ""));
-		logger.println(Messages.endpoint() + ": " + (endpoint != null ? endpoint : ""));
-		logger.println(
-				Messages.configurationFilePath() + ": " + (configurationFilePath != null ? configurationFilePath : ""));
+		logger.println(Messages.tricentisClientPath() + ": " + getTricentisClientPath());
+		logger.println(Messages.endpoint() + ": " + getEndpoint());
+		logger.println(Messages.configurationFilePath() + ": " + getConfigurationFilePath());
 		logger.println(Messages.resultsFile() + ": " + getResultsFile());
-		logger.println(Messages.testEvents() + ": " + (testEvents != null ? testEvents : ""));
+		logger.println(Messages.testEvents() + ": " + getTestEvents());
 	}
 
 	private void assertParameters() {

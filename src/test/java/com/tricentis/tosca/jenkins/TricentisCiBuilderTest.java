@@ -39,11 +39,8 @@ import hudson.util.FormValidation;
  */
 public class TricentisCiBuilderTest {
 
-	static final String SPACE = " ";
+	private static final String EMPTY_STRING = "";
 	static final String CONF_DEFAULT = "$TRICENTIS_HOME\\ToscaCI\\Client\\Testconfig.xml";
-	static final String TESTEVENTS_DEFAULT = "";
-	static final String CLIENT_DEFAULT = "$TRICENTIS_HOME\\ToscaCI\\Client\\ToscaCIJavaClient.jar";
-	static final String ENDPOINT_DEFAULT = "http://servername/DistributionServerService/ManagerService.svc";
 
 	@Rule
 	public ExpectedException expected = ExpectedException.none();
@@ -107,13 +104,13 @@ public class TricentisCiBuilderTest {
 		assertEquals(expected, ciBuilder.getTricentisClientPath());
 
 		ciBuilder.setTricentisClientPath(null);
-		assertEquals(SPACE, ciBuilder.getTricentisClientPath());
+		assertEquals(EMPTY_STRING, ciBuilder.getTricentisClientPath());
 
 		ciBuilder.setTricentisClientPath("");
-		assertEquals(SPACE, ciBuilder.getTricentisClientPath());
+		assertEquals(EMPTY_STRING, ciBuilder.getTricentisClientPath());
 
 		ciBuilder.setTricentisClientPath("        ");
-		assertEquals(SPACE, ciBuilder.getTricentisClientPath());
+		assertEquals(EMPTY_STRING, ciBuilder.getTricentisClientPath());
 	}
 
 	@Test
@@ -135,13 +132,13 @@ public class TricentisCiBuilderTest {
 		assertEquals(expected, ciBuilder.getConfigurationFilePath());
 
 		ciBuilder.setConfigurationFilePath(null);
-		assertEquals(SPACE, ciBuilder.getConfigurationFilePath());
+		assertEquals(EMPTY_STRING, ciBuilder.getConfigurationFilePath());
 
 		ciBuilder.setConfigurationFilePath("");
-		assertEquals(SPACE, ciBuilder.getConfigurationFilePath());
+		assertEquals(EMPTY_STRING, ciBuilder.getConfigurationFilePath());
 
 		ciBuilder.setConfigurationFilePath("        ");
-		assertEquals(SPACE, ciBuilder.getConfigurationFilePath());
+		assertEquals(EMPTY_STRING, ciBuilder.getConfigurationFilePath());
 	}
 
 	@Test

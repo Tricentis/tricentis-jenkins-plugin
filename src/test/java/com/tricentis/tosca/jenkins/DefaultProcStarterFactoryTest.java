@@ -139,12 +139,10 @@ public class DefaultProcStarterFactoryTest {
 			cmds.add("-c");
 			cmds.add(conf);
 		}
-		cmds.add("-e");
-		if (endpoint != null && !endpoint.isEmpty()) {
 
+		if (endpoint != null && !endpoint.isEmpty()) {
+			cmds.add("-e");
 			cmds.add(endpoint);
-		} else {
-			cmds.add(defaultEndpoint);
 		}
 		return cmds;
 	}

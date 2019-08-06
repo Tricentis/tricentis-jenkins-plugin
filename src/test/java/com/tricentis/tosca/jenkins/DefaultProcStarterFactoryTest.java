@@ -135,7 +135,7 @@ public class DefaultProcStarterFactoryTest {
 			cmds.add("-jar");
 		}
 		cmds.addAll(
-				Arrays.asList(toscaClient, "-m", "distributed", "-t", "junit", "-x", "True", "-r", new File(workspace.getRemote(), RESULTS).getAbsolutePath()));
+				Arrays.asList(toscaClient, "-m", "distributed", "-t", "junit", "-x", "True", "-r", workspace.child(RESULTS).getRemote()));
 		if (conf != null) {
 			cmds.add("-c");
 			cmds.add(conf);

@@ -114,7 +114,8 @@ public class DefaultProcStarterFactory implements ProcStarterFactory {
 
 		File file;
 		try {
-			file = new File(workspace.createTempFile("temp-jenkins-tricentis", ".xml").toURI());
+			file = new File(new File(workspace.toURI()).getAbsolutePath() + "\\temp-jenkins-tricentis.xml");
+			boolean isNewlyCreated = file.createNewFile();
 		} catch (IOException e1) {
 			logger.println("Tricentis-CI Plugin: " + e1.getMessage());
 			executor.interrupt(Result.FAILURE);

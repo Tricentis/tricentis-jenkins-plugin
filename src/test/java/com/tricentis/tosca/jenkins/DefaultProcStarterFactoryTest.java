@@ -22,6 +22,7 @@ import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher.DummyLauncher;
 import hudson.Launcher.ProcStarter;
+import hudson.model.Executor;
 import hudson.model.Run;
 import hudson.model.StreamBuildListener;
 import hudson.model.TaskListener;
@@ -49,16 +50,19 @@ public class DefaultProcStarterFactoryTest {
 		final String endpoint = "/endpoint";
 		final String toscaRunnerPath = "$" + TRICENTIS_HOME + jarName;
 		final String confPath = conf + "$" + VAR;
+		final String testEvents = "";
 		final String endpointValue = "$" + VAR + endpoint;
 		final TricentisCiBuilder runner = new TricentisCiBuilder(toscaRunnerPath, endpointValue);
 		runner.setConfigurationFilePath(confPath);
+		runner.setTestEvents(testEvents);
 		final EnvVars envVars = createEnvVars();
 		envVars.put("JAVA_HOME", "javahome");
 		final FilePath workspace = new FilePath(new File(""));
 		final ProcStarter starter = createStarter(runner, envVars, workspace);
 
-		final List<String> expectedCmd = createExpectedCmd("javahome" + File.separator + "bin" + File.separator + "java", TRICENTIS_HOME_VALUE + jarName,
-				conf + VAR_VALUE, VAR_VALUE + endpoint, workspace);
+		final List<String> expectedCmd = createExpectedCmd(
+				"javahome" + File.separator + "bin" + File.separator + "java", TRICENTIS_HOME_VALUE + jarName,
+				conf + VAR_VALUE, testEvents, VAR_VALUE + endpoint, workspace);
 
 		assertEquals(expectedCmd, starter.cmds());
 		assertArrayEquals(toArray(envVars), starter.envs());
@@ -79,68 +83,64 @@ public class DefaultProcStarterFactoryTest {
 	public void testCreateWithExeRunner() throws InterruptedException, IOException {
 		final String toscaRunnerPath = "ToscaCIClient.exe";
 		final String confPath = "conf";
+		final String testEvents = "";
 		final String endpoint = "endpoint";
 		final FilePath workspace = new FilePath(new File(""));
 		final TricentisCiBuilder runner = new TricentisCiBuilder(toscaRunnerPath, endpoint);
 		runner.setConfigurationFilePath(confPath);
+		runner.setTestEvents(testEvents);
 		final ProcStarter starter = createStarter(runner, createEnvVars(), workspace);
 
-		assertEquals(createExpectedCmd(null, toscaRunnerPath, confPath, endpoint, workspace), starter.cmds());
+		assertEquals(createExpectedCmd(null, toscaRunnerPath, confPath, testEvents, endpoint, workspace),
+				starter.cmds());
 	}
 
 	@Test
 	public void createWithNoConfigPath() throws InterruptedException, IOException {
 		final String toscaRunnerPath = "ToscaCIClient.exe";
 		final String confPath = null;
+		final String testEvents = null;
 		final String endpoint = "endpoint";
 		final FilePath workspace = new FilePath(new File(""));
 		final TricentisCiBuilder runner = new TricentisCiBuilder(toscaRunnerPath, endpoint);
 		runner.setConfigurationFilePath(confPath);
 		final ProcStarter starter = createStarter(runner, createEnvVars(), workspace);
 
-		assertEquals(createExpectedCmd(null, toscaRunnerPath, confPath, endpoint, workspace), starter.cmds());
-	}
-
-	@Test
-	public void createWithNoEndpoint() throws InterruptedException, IOException {
-		final String toscaRunnerPath = "ToscaCIClient.exe";
-		final String confPath = null;
-		final String endpoint = null;
-		final FilePath workspace = new FilePath(new File(""));
-		final TricentisCiBuilder runner = new TricentisCiBuilder(toscaRunnerPath, endpoint);
-		runner.setConfigurationFilePath(confPath);
-		final ProcStarter starter = createStarter(runner, createEnvVars(), workspace);
-
-		assertEquals(createExpectedCmd(null, toscaRunnerPath, confPath, endpoint, workspace), starter.cmds());
+		assertEquals(createExpectedCmd(null, toscaRunnerPath, confPath, testEvents, endpoint, workspace),
+				starter.cmds());
 	}
 
 	@Test
 	public void createWithNoEndpointAndNoConfig() throws InterruptedException, IOException {
 		final String toscaRunnerPath = "ToscaCIClient.exe";
 		final String confPath = null;
+		final String testEvents = null;
 		final String endpoint = null;
 		final FilePath workspace = new FilePath(new File(""));
 		final TricentisCiBuilder runner = new TricentisCiBuilder(toscaRunnerPath, endpoint);
 		runner.setConfigurationFilePath(confPath);
 		final ProcStarter starter = createStarter(runner, createEnvVars(), workspace);
 
-		assertEquals(createExpectedCmd(null, toscaRunnerPath, confPath, endpoint, workspace), starter.cmds());
+		assertEquals(createExpectedCmd(null, toscaRunnerPath, confPath, testEvents, endpoint, workspace),
+				starter.cmds());
 	}
 
-	private List<String> createExpectedCmd(final String application, final String toscaClient, final String conf, final String endpoint,
-			final FilePath workspace) {
+	private List<String> createExpectedCmd(final String application, final String toscaClient, final String conf,
+			final String testeEvents, final String endpoint, final FilePath workspace) {
+		final String defaultEndpoint = "http://servername/DistributionServerService/ManagerService.svc";
 		final List<String> cmds = new ArrayList<>();
 		if (application != null) {
 			cmds.add(application);
 			cmds.add("-jar");
 		}
-		cmds.addAll(
-				Arrays.asList(toscaClient, "-m", "distributed", "-t", "junit", "-x", "True", "-r", workspace.child(RESULTS).getRemote()));
-		if (conf != null) {
+		cmds.addAll(Arrays.asList(toscaClient, "-m", "distributed", "-t", "junit", "-x", "True", "-r",
+				workspace.child(RESULTS).getRemote()));
+		if (conf != null && !conf.isEmpty()) {
 			cmds.add("-c");
 			cmds.add(conf);
 		}
-		if (endpoint != null) {
+
+		if (endpoint != null && !endpoint.isEmpty()) {
 			cmds.add("-e");
 			cmds.add(endpoint);
 		}
@@ -152,6 +152,7 @@ public class DefaultProcStarterFactoryTest {
 		final Run<?, ?> run = mock(Run.class);
 		final DefaultProcStarterFactory factory = new DefaultProcStarterFactory();
 		when(run.getEnvironment(any(TaskListener.class))).thenReturn(envVars);
+		when(run.getExecutor()).thenReturn(mock(Executor.class));
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
 		final TaskListener listener = new StreamBuildListener(out);
 		return factory.create(runner, run, workspace, new DummyLauncher(listener), listener);

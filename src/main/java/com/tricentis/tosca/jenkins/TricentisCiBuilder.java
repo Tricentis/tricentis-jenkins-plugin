@@ -1,5 +1,6 @@
 package com.tricentis.tosca.jenkins;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 
@@ -74,59 +75,67 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 	}
 
 	public String getTricentisClientPath() {
-		if (tricentisClientPath == null)
+		if (tricentisClientPath == null) {
 			return "$TRICENTIS_HOME\\ToscaCI\\Client\\ToscaCIJavaClient.jar";
+		}
 		return tricentisClientPath;
 	}
 
 	@DataBoundSetter
 	public void setTricentisClientPath(final String tricentisClientPath) {
-		if (tricentisClientPath == null || tricentisClientPath.trim().isEmpty())
+		if (tricentisClientPath == null || tricentisClientPath.trim().isEmpty()) {
 			this.tricentisClientPath = EMPTY_STRING;
-		else
+		} else {
 			this.tricentisClientPath = fixPath(tricentisClientPath);
+		}
 	}
 
 	public String getConfigurationFilePath() {
-		if (configurationFilePath == null)
+		if (configurationFilePath == null) {
 			return "$TRICENTIS_HOME\\ToscaCI\\Client\\Testconfig.xml";
+		}
 		return configurationFilePath;
 	}
 
 	@DataBoundSetter
 	public void setConfigurationFilePath(final String configurationFilePath) {
-		if (configurationFilePath == null || configurationFilePath.trim().isEmpty())
+		if (configurationFilePath == null || configurationFilePath.trim().isEmpty()) {
 			this.configurationFilePath = EMPTY_STRING;
-		else
+		} else {
 			this.configurationFilePath = fixPath(configurationFilePath);
+		}
 	}
 
 	public String getTestEvents() {
-		if (testEvents == null)
+		if (testEvents == null) {
 			return EMPTY_STRING;
+		}
 		return testEvents;
 	}
 
 	@DataBoundSetter
 	public void setTestEvents(final String testEvents) {
-		if (testEvents == null || testEvents.trim().isEmpty())
+		if (testEvents == null || testEvents.trim().isEmpty()) {
 			this.testEvents = EMPTY_STRING;
-		else
+		} else {
 			this.testEvents = testEvents;
+		}
 	}
 
 	public String getEndpoint() {
-		if (endpoint == null)
+		if (endpoint == null) {
 			return "http://servername/DistributionServerService/ManagerService.svc";
+		}
 		return endpoint;
 	}
 
 	@DataBoundSetter
 	public void setEndpoint(final String endpoint) {
-		if (endpoint == null || endpoint.trim().isEmpty())
+		if (endpoint == null || endpoint.trim().isEmpty()) {
 			this.endpoint = EMPTY_STRING;
-		else
+		} else {
 			this.endpoint = Util.fixEmptyAndTrim(endpoint);
+		}
 	}
 
 	public String getResultsFile() {
@@ -214,18 +223,62 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 		public FormValidation doCheckTricentisClientPath(@AncestorInPath final AbstractProject<?, ?> project,
 				@QueryParameter final String tricentisClientPath) throws IOException, ServletException {
 			project.checkPermission(Job.CONFIGURE);
-			return validateRequiredField(tricentisClientPath);
+			if (!isStringValid(tricentisClientPath)) {
+				return FormValidation.error(Messages.required());
+			}
+			if (!fileExists(tricentisClientPath)) {
+				return FormValidation.error(Messages.fileNotFound());
+			}
+			return FormValidation.ok();
 		}
 
 		public FormValidation doCheckEndpoint(@AncestorInPath final AbstractProject<?, ?> project,
 				@QueryParameter final String endpoint) throws IOException, ServletException {
 			project.checkPermission(Job.CONFIGURE);
-			return validateRequiredField(endpoint);
+			if (!isStringValid(endpoint)) {
+				return FormValidation.error(Messages.required());
+			}
+			return FormValidation.ok();
 		}
 
-		private FormValidation validateRequiredField(final String value) {
-			final String trimmed = Util.fixEmptyAndTrim(value);
-			return trimmed != null ? FormValidation.ok() : FormValidation.error(Messages.required());
+		public FormValidation doCheckTestEvents(@AncestorInPath final AbstractProject<?, ?> project,
+				@QueryParameter final String testEvents, @QueryParameter final String endpoint,
+				@QueryParameter final String configurationFilePath) throws IOException, ServletException {
+			project.checkPermission(Job.CONFIGURE);
+			if (isStringValid(testEvents) && !endpoint.toLowerCase().contains("distributionserverservice")) {
+				return FormValidation.warning(Messages.dexOnly());
+			}
+			return validateOnlyOneField(testEvents, configurationFilePath);
+		}
+
+		public FormValidation doCheckConfigurationFilePath(@AncestorInPath final AbstractProject<?, ?> project,
+				@QueryParameter final String configurationFilePath, @QueryParameter final String testEvents)
+				throws IOException, ServletException {
+			project.checkPermission(Job.CONFIGURE);
+			if (isStringValid(configurationFilePath) && !fileExists(configurationFilePath)) {
+				return FormValidation.error(Messages.fileNotFound());
+			}
+			return validateOnlyOneField(testEvents, configurationFilePath);
+		}
+
+		private FormValidation validateOnlyOneField(final String val1, final String val2) {
+			return (val1.isEmpty() || val2.isEmpty()) ? FormValidation.ok() : FormValidation.error(Messages.onlyOne());
+		}
+
+		private boolean fileExists(String path) {
+			if (path.startsWith("$")) {
+				int firstForward = path.indexOf('/');
+				int firstBackward = path.indexOf('\\');
+				int firstSeparator = firstForward + firstBackward == -2 ? path.length() - 1
+						: firstForward < firstBackward && firstForward != -1 ? firstForward : firstBackward;
+				path = System.getenv(path.substring(1, firstSeparator)) + path.substring(firstSeparator);
+			}
+			File file = new File(path);
+			return file.exists() && file.isFile();
+		}
+
+		private boolean isStringValid(String value) {
+			return value != null && !value.trim().isEmpty();
 		}
 
 	}

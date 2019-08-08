@@ -155,12 +155,8 @@ public class TricentisCiBuilderTest {
 	public void testDescriptorDoCheckTricentisClientPath() throws IOException, ServletException {
 		final AbstractProject<?, ?> project = mock(AbstractProject.class);
 		final TricentisCiBuilder.Descriptor descriptor = new TricentisCiBuilder.Descriptor();
-		assertEquals(FormValidation.ok(), descriptor.doCheckTricentisClientPath(project, "some path"));
+		assertEquals(FormValidation.error(Messages.fileNotFound()).toString(), descriptor.doCheckTricentisClientPath(project, "some path").toString());
 		verify(project).checkPermission(Job.CONFIGURE);
-		final FormValidation validation = descriptor.doCheckTricentisClientPath(project, "");
-		assertEquals(Messages.required(), validation.getMessage());
-		assertEquals(FormValidation.Kind.ERROR, validation.kind);
-		verify(project, times(2)).checkPermission(Job.CONFIGURE);
 	}
 
 	@Test

@@ -1,7 +1,6 @@
 package com.tricentis.tosca.jenkins;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -40,6 +39,9 @@ import hudson.util.FormValidation;
  */
 public class TricentisCiBuilderTest {
 
+	private static final String EMPTY_STRING = "";
+	static final String CONF_DEFAULT = "$TRICENTIS_HOME\\ToscaCI\\Client\\Testconfig.xml";
+
 	@Rule
 	public ExpectedException expected = ExpectedException.none();
 
@@ -51,9 +53,11 @@ public class TricentisCiBuilderTest {
 
 		builder.perform(context.run, context.workspace, context.launcher, context.listener);
 
-		verify(context.starterFactory).create(builder, context.run, context.workspace, context.launcher, context.listener);
+		verify(context.starterFactory).create(builder, context.run, context.workspace, context.launcher,
+				context.listener);
 		verify(context.executor).execute(context.starter);
-		verify(context.publisher).publish("results.xml", context.run, context.workspace, context.launcher, context.listener);
+		verify(context.publisher).publish("results.xml", context.run, context.workspace, context.launcher,
+				context.listener);
 	}
 
 	@Test
@@ -82,24 +86,6 @@ public class TricentisCiBuilderTest {
 	}
 
 	@Test
-	public void testFailOnEmptyClientPath() throws InterruptedException, IOException {
-		expected.expect(RuntimeException.class);
-		expected.expectMessage(Messages.parametersNullError(Messages.tricentisClientPath()));
-		final TricentisCiBuilder builder = new TricentisCiBuilder("", "aa");
-		final ExecutionContext context = new ExecutionContext(builder, 0);
-		builder.perform(context.run, context.workspace, context.launcher, context.listener);
-	}
-
-	@Test
-	public void testFailOnEmptyEndpoint() throws InterruptedException, IOException {
-		expected.expect(RuntimeException.class);
-		expected.expectMessage(Messages.parametersNullError(Messages.endpoint()));
-		final TricentisCiBuilder builder = new TricentisCiBuilder("aa", "");
-		final ExecutionContext context = new ExecutionContext(builder, 0);
-		builder.perform(context.run, context.workspace, context.launcher, context.listener);
-	}
-
-	@Test
 	public void testSetTricentisPath() {
 		final String expected = "aaaa";
 		final TricentisCiBuilder ciBuilder = new TricentisCiBuilder("\"" + expected + "\"", "endpoint");
@@ -118,20 +104,20 @@ public class TricentisCiBuilderTest {
 		assertEquals(expected, ciBuilder.getTricentisClientPath());
 
 		ciBuilder.setTricentisClientPath(null);
-		assertNull(ciBuilder.getTricentisClientPath());
+		assertEquals(EMPTY_STRING, ciBuilder.getTricentisClientPath());
 
 		ciBuilder.setTricentisClientPath("");
-		assertNull(ciBuilder.getTricentisClientPath());
+		assertEquals(EMPTY_STRING, ciBuilder.getTricentisClientPath());
 
 		ciBuilder.setTricentisClientPath("        ");
-		assertNull(ciBuilder.getTricentisClientPath());
+		assertEquals(EMPTY_STRING, ciBuilder.getTricentisClientPath());
 	}
 
 	@Test
 	public void testSetConfigurationFilePath() {
 		final String expected = "aaaa";
 		final TricentisCiBuilder ciBuilder = new TricentisCiBuilder("something", "endpoint");
-		assertNull(ciBuilder.getConfigurationFilePath());
+		assertEquals(CONF_DEFAULT, ciBuilder.getConfigurationFilePath());
 
 		ciBuilder.setConfigurationFilePath(expected);
 		assertEquals(expected, ciBuilder.getConfigurationFilePath());
@@ -146,13 +132,13 @@ public class TricentisCiBuilderTest {
 		assertEquals(expected, ciBuilder.getConfigurationFilePath());
 
 		ciBuilder.setConfigurationFilePath(null);
-		assertNull(ciBuilder.getConfigurationFilePath());
+		assertEquals(EMPTY_STRING, ciBuilder.getConfigurationFilePath());
 
 		ciBuilder.setConfigurationFilePath("");
-		assertNull(ciBuilder.getConfigurationFilePath());
+		assertEquals(EMPTY_STRING, ciBuilder.getConfigurationFilePath());
 
 		ciBuilder.setConfigurationFilePath("        ");
-		assertNull(ciBuilder.getConfigurationFilePath());
+		assertEquals(EMPTY_STRING, ciBuilder.getConfigurationFilePath());
 	}
 
 	@Test
@@ -169,12 +155,8 @@ public class TricentisCiBuilderTest {
 	public void testDescriptorDoCheckTricentisClientPath() throws IOException, ServletException {
 		final AbstractProject<?, ?> project = mock(AbstractProject.class);
 		final TricentisCiBuilder.Descriptor descriptor = new TricentisCiBuilder.Descriptor();
-		assertEquals(FormValidation.ok(), descriptor.doCheckTricentisClientPath(project, "some path"));
+		assertEquals(FormValidation.error(Messages.fileNotFound()).toString(), descriptor.doCheckTricentisClientPath(project, "some path").toString());
 		verify(project).checkPermission(Job.CONFIGURE);
-		final FormValidation validation = descriptor.doCheckTricentisClientPath(project, "");
-		assertEquals(Messages.required(), validation.getMessage());
-		assertEquals(FormValidation.Kind.ERROR, validation.kind);
-		verify(project, times(2)).checkPermission(Job.CONFIGURE);
 	}
 
 	@Test
@@ -189,7 +171,8 @@ public class TricentisCiBuilderTest {
 		verify(project, times(2)).checkPermission(Job.CONFIGURE);
 	}
 
-	private void testNonZeroExecutionCode(final TricentisCiBuilder builder, final int returnCode) throws InterruptedException, IOException {
+	private void testNonZeroExecutionCode(final TricentisCiBuilder builder, final int returnCode)
+			throws InterruptedException, IOException {
 		final ExecutionContext context = new ExecutionContext(builder, returnCode);
 		try {
 			builder.perform(context.run, context.workspace, context.launcher, context.listener);
@@ -198,9 +181,11 @@ public class TricentisCiBuilderTest {
 			assertEquals(Messages.exitCodeNotZero(returnCode), ex.getMessage());
 		}
 
-		verify(context.starterFactory).create(builder, context.run, context.workspace, context.launcher, context.listener);
+		verify(context.starterFactory).create(builder, context.run, context.workspace, context.launcher,
+				context.listener);
 		verify(context.executor).execute(context.starter);
-		verify(context.publisher).publish("results.xml", context.run, context.workspace, context.launcher, context.listener);
+		verify(context.publisher).publish("results.xml", context.run, context.workspace, context.launcher,
+				context.listener);
 	}
 
 	private static class ExecutionContext {
@@ -213,7 +198,8 @@ public class TricentisCiBuilderTest {
 		ProcessExecutor executor;
 		JUnitResultsPublisher publisher;
 
-		public ExecutionContext(final TricentisCiBuilder builder, final int exitCode) throws IOException, InterruptedException {
+		public ExecutionContext(final TricentisCiBuilder builder, final int exitCode)
+				throws IOException, InterruptedException {
 			run = createRunMock();
 			workspace = new FilePath(new File(""));
 			final ByteArrayOutputStream out = new ByteArrayOutputStream();

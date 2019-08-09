@@ -1,5 +1,6 @@
 package com.tricentis.tosca.jenkins;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 
@@ -42,14 +43,14 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 	private String tricentisClientPath;
 	private String configurationFilePath;
 	private String endpoint;
+	private String testEvents;
+	private static final String EMPTY_STRING = "";
 
 	/**
 	 * Constructor.
 	 *
-	 * @param tricentisClientPath
-	 *            client executable or jar file path.
-	 * @param endpoint
-	 *            endpoint.
+	 * @param tricentisClientPath client executable or jar file path.
+	 * @param endpoint            endpoint.
 	 */
 	@DataBoundConstructor
 	public TricentisCiBuilder(final String tricentisClientPath, final String endpoint) {
@@ -58,8 +59,8 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 	}
 
 	@Override
-	public void perform(final Run<?, ?> run, final FilePath workspace, final Launcher launcher, final TaskListener listener)
-			throws InterruptedException, IOException {
+	public void perform(final Run<?, ?> run, final FilePath workspace, final Launcher launcher,
+			final TaskListener listener) throws InterruptedException, IOException {
 		final PrintStream logger = listener.getLogger();
 		logParameters(logger);
 		assertParameters();
@@ -74,30 +75,67 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 	}
 
 	public String getTricentisClientPath() {
+		if (tricentisClientPath == null) {
+			return "$TRICENTIS_HOME\\ToscaCI\\Client\\ToscaCIJavaClient.jar";
+		}
 		return tricentisClientPath;
 	}
 
 	@DataBoundSetter
 	public void setTricentisClientPath(final String tricentisClientPath) {
-		this.tricentisClientPath = fixPath(tricentisClientPath);
+		if (tricentisClientPath == null || tricentisClientPath.trim().isEmpty()) {
+			this.tricentisClientPath = EMPTY_STRING;
+		} else {
+			this.tricentisClientPath = fixPath(tricentisClientPath);
+		}
 	}
 
 	public String getConfigurationFilePath() {
+		if (configurationFilePath == null) {
+			return "$TRICENTIS_HOME\\ToscaCI\\Client\\Testconfig.xml";
+		}
 		return configurationFilePath;
 	}
 
 	@DataBoundSetter
 	public void setConfigurationFilePath(final String configurationFilePath) {
-		this.configurationFilePath = fixPath(configurationFilePath);
+		if (configurationFilePath == null || configurationFilePath.trim().isEmpty()) {
+			this.configurationFilePath = EMPTY_STRING;
+		} else {
+			this.configurationFilePath = fixPath(configurationFilePath);
+		}
+	}
+
+	public String getTestEvents() {
+		if (testEvents == null) {
+			return EMPTY_STRING;
+		}
+		return testEvents;
+	}
+
+	@DataBoundSetter
+	public void setTestEvents(final String testEvents) {
+		if (testEvents == null || testEvents.trim().isEmpty()) {
+			this.testEvents = EMPTY_STRING;
+		} else {
+			this.testEvents = testEvents;
+		}
 	}
 
 	public String getEndpoint() {
+		if (endpoint == null) {
+			return "http://servername/DistributionServerService/ManagerService.svc";
+		}
 		return endpoint;
 	}
 
 	@DataBoundSetter
 	public void setEndpoint(final String endpoint) {
-		this.endpoint = Util.fixEmptyAndTrim(endpoint);
+		if (endpoint == null || endpoint.trim().isEmpty()) {
+			this.endpoint = EMPTY_STRING;
+		} else {
+			this.endpoint = Util.fixEmptyAndTrim(endpoint);
+		}
 	}
 
 	public String getResultsFile() {
@@ -139,10 +177,11 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 
 	private void logParameters(final PrintStream logger) {
 		logger.println(Messages.runJobLog(Messages.pluginTitle()));
-		logger.println(Messages.tricentisClientPath() + ": " + (tricentisClientPath != null ? tricentisClientPath : ""));
-		logger.println(Messages.endpoint() + ": " + (endpoint != null ? endpoint : ""));
-		logger.println(Messages.configurationFilePath() + ": " + (configurationFilePath != null ? configurationFilePath : ""));
+		logger.println(Messages.tricentisClientPath() + ": " + getTricentisClientPath());
+		logger.println(Messages.endpoint() + ": " + getEndpoint());
+		logger.println(Messages.configurationFilePath() + ": " + getConfigurationFilePath());
 		logger.println(Messages.resultsFile() + ": " + getResultsFile());
+		logger.println(Messages.testEvents() + ": " + getTestEvents());
 	}
 
 	private void assertParameters() {
@@ -157,7 +196,7 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 	}
 
 	private String fixPath(final String path) {
-		return StringUtils.removeEnd(StringUtils.removeStart(Util.fixEmptyAndTrim(path), "\""), "\"");
+		return StringUtils.removeEnd(StringUtils.removeStart(path.trim(), "\""), "\"");
 	}
 
 	/**
@@ -169,7 +208,6 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 	@Symbol("tricentisCI")
 	@Extension
 	public static class Descriptor extends BuildStepDescriptor<Builder> {
-
 		@SuppressWarnings("rawtypes")
 		@Override
 		public boolean isApplicable(final Class<? extends AbstractProject> jobType) {
@@ -181,21 +219,83 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 			return Messages.pluginTitle();
 		}
 
-		public FormValidation doCheckTricentisClientPath(@AncestorInPath final AbstractProject<?, ?> project, @QueryParameter final String tricentisClientPath)
-				throws IOException, ServletException {
+		public FormValidation doCheckTricentisClientPath(@AncestorInPath final AbstractProject<?, ?> project,
+				@QueryParameter final String tricentisClientPath) throws IOException, ServletException {
 			project.checkPermission(Job.CONFIGURE);
-			return validateRequiredField(tricentisClientPath);
+			if (!isStringValid(tricentisClientPath)) {
+				return FormValidation.error(Messages.required());
+			}
+			if (!fileExists(tricentisClientPath)) {
+				return FormValidation.error(Messages.fileNotFound());
+			}
+			return FormValidation.ok();
 		}
 
-		public FormValidation doCheckEndpoint(@AncestorInPath final AbstractProject<?, ?> project, @QueryParameter final String endpoint)
-				throws IOException, ServletException {
+		public FormValidation doCheckEndpoint(@AncestorInPath final AbstractProject<?, ?> project,
+				@QueryParameter final String endpoint) throws IOException, ServletException {
 			project.checkPermission(Job.CONFIGURE);
-			return validateRequiredField(endpoint);
+			if (!isStringValid(endpoint)) {
+				return FormValidation.error(Messages.required());
+			}
+			return FormValidation.ok();
 		}
 
-		private FormValidation validateRequiredField(final String value) {
-			final String trimmed = Util.fixEmptyAndTrim(value);
-			return trimmed != null ? FormValidation.ok() : FormValidation.error(Messages.required());
+		public FormValidation doCheckTestEvents(@AncestorInPath final AbstractProject<?, ?> project,
+				@QueryParameter final String testEvents, @QueryParameter final String endpoint,
+				@QueryParameter final String configurationFilePath) throws IOException, ServletException {
+			project.checkPermission(Job.CONFIGURE);
+			String oneFieldString = validateOnlyOneField(testEvents, configurationFilePath, endpoint);
+			if (oneFieldString != null) {
+				return FormValidation.error(oneFieldString);
+			}
+			if (isStringValid(testEvents) && !isDex(endpoint)) {
+				return FormValidation.error(Messages.dexOnly());
+			}
+			return FormValidation.ok();
+		}
+
+		public FormValidation doCheckConfigurationFilePath(@AncestorInPath final AbstractProject<?, ?> project,
+				@QueryParameter final String configurationFilePath, @QueryParameter final String testEvents,
+				@QueryParameter final String endpoint) throws IOException, ServletException {
+			project.checkPermission(Job.CONFIGURE);
+			String oneFieldString = validateOnlyOneField(testEvents, configurationFilePath, endpoint);
+			if (oneFieldString != null) {
+				return FormValidation.error(oneFieldString);
+			}
+			if (isStringValid(configurationFilePath) && !fileExists(configurationFilePath)) {
+				return FormValidation.error(Messages.fileNotFound());
+			}
+			return FormValidation.ok();
+		}
+
+		private String validateOnlyOneField(final String val1, final String val2, final String endpoint) {
+			if (isDex(endpoint) && (val1.isEmpty() == val2.isEmpty())) {
+				return Messages.onlyOne();
+			}
+			return null;
+		}
+
+		private boolean fileExists(String path) {
+			if (path.startsWith("$")) {
+				String newPathString = path.replace('\\', '/');
+				int firstSeparator = newPathString.indexOf('/');
+				if (firstSeparator == -1) {
+					path = System.getenv(path.substring(1));
+				} else {
+					String expEnvVar = StringUtils.stripEnd(System.getenv(path.substring(1, firstSeparator)), "\\/");
+					path = expEnvVar + path.substring(firstSeparator);
+				}
+			}
+			File file = new File(path.replace('\\', File.separatorChar).replace('/', File.separatorChar));
+			return file.exists() && file.isFile();
+		}
+
+		private boolean isStringValid(String value) {
+			return value != null && !value.trim().isEmpty();
+		}
+
+		private boolean isDex(String endpoint) {
+			return endpoint.toLowerCase().contains("managerservice.svc");
 		}
 
 	}

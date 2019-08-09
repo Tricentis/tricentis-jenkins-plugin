@@ -6,15 +6,17 @@
   <d:taglib uri="local">
       <img src="${resURL}/plugin/tricentis-ci/banner.png" style="width: 100%; height: auto;"/>
       <f:entry title="${%tricentisClientPath}" field="tricentisClientPath">
-        <f:textbox name="tricentisClientPath" default="$TRICENTIS_HOME\ToscaCI\Client\ToscaCIJavaClient.jar" value="${instance.getTricentisClientPath()}"/>
+        <f:textbox name="tricentisClientPath" default="$COMMANDER_HOME\ToscaCI\Client\ToscaCIJavaClient.jar" value="${instance.getTricentisClientPath()}"/>
       </f:entry>
     
    	  <f:entry title="${%endpoint}" field="endpoint">
         <f:textbox name="endpoint" value="${instance.getEndpoint()}" default="http://servername/DistributionServerService/ManagerService.svc"/>
       </f:entry>
-    
+      <f:entry title="${%testEvents}" field="testEvents">
+        <f:textbox name="testEvents" value="${instance.getTestEvents()}" default=""/>
+      </f:entry>
       <f:entry title="${%configurationFilePath}" field="configurationFilePath">
-        <f:textbox name="configurationFilePath" value="${instance.getConfigurationFilePath()}" default="$TRICENTIS_HOME\ToscaCI\Client\Testconfig.xml"/>
+        <f:textbox name="configurationFilePath" value="${instance.getConfigurationFilePath()}" default=""/>
       </f:entry>      
   </d:taglib>
 </f:block>

@@ -245,24 +245,31 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 				@QueryParameter final String testEvents, @QueryParameter final String endpoint,
 				@QueryParameter final String configurationFilePath) throws IOException, ServletException {
 			project.checkPermission(Job.CONFIGURE);
-			if (isStringValid(testEvents) && !endpoint.toLowerCase().contains("distributionserverservice")) {
-				return FormValidation.warning(Messages.dexOnly());
+			String oneFieldString = validateOnlyOneField(testEvents, configurationFilePath, endpoint);
+			if (oneFieldString != null)
+				return FormValidation.error(oneFieldString);
+			if (isStringValid(testEvents) && !isDex(endpoint)) {
+				return FormValidation.error(Messages.dexOnly());
 			}
-			return validateOnlyOneField(testEvents, configurationFilePath);
+			return FormValidation.ok();
 		}
 
 		public FormValidation doCheckConfigurationFilePath(@AncestorInPath final AbstractProject<?, ?> project,
-				@QueryParameter final String configurationFilePath, @QueryParameter final String testEvents)
-				throws IOException, ServletException {
+				@QueryParameter final String configurationFilePath, @QueryParameter final String testEvents,
+				@QueryParameter final String endpoint) throws IOException, ServletException {
 			project.checkPermission(Job.CONFIGURE);
+			String oneFieldString = validateOnlyOneField(testEvents, configurationFilePath, endpoint);
+			if (oneFieldString != null)
+				return FormValidation.error(oneFieldString);
 			if (isStringValid(configurationFilePath) && !fileExists(configurationFilePath)) {
 				return FormValidation.error(Messages.fileNotFound());
 			}
-			return validateOnlyOneField(testEvents, configurationFilePath);
+			return FormValidation.ok();
 		}
 
-		private FormValidation validateOnlyOneField(final String val1, final String val2) {
-			return (val1.isEmpty() || val2.isEmpty()) ? FormValidation.ok() : FormValidation.error(Messages.onlyOne());
+		private String validateOnlyOneField(final String val1, final String val2, final String endpoint) {
+			return (isDex(endpoint)) ? (val1.isEmpty() ^ val2.isEmpty()) ? null : Messages.onlyOne()
+					: (val1.isEmpty() || val2.isEmpty()) ? null : Messages.justConfigFile();
 		}
 
 		private boolean fileExists(String path) {
@@ -279,6 +286,10 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 
 		private boolean isStringValid(String value) {
 			return value != null && !value.trim().isEmpty();
+		}
+
+		private boolean isDex(String endpoint) {
+			return endpoint.toLowerCase().contains("managerservice.svc");
 		}
 
 	}

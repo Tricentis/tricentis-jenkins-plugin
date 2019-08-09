@@ -246,8 +246,9 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 				@QueryParameter final String configurationFilePath) throws IOException, ServletException {
 			project.checkPermission(Job.CONFIGURE);
 			String oneFieldString = validateOnlyOneField(testEvents, configurationFilePath, endpoint);
-			if (oneFieldString != null)
+			if (oneFieldString != null) {
 				return FormValidation.error(oneFieldString);
+			}
 			if (isStringValid(testEvents) && !isDex(endpoint)) {
 				return FormValidation.error(Messages.dexOnly());
 			}
@@ -259,8 +260,9 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 				@QueryParameter final String endpoint) throws IOException, ServletException {
 			project.checkPermission(Job.CONFIGURE);
 			String oneFieldString = validateOnlyOneField(testEvents, configurationFilePath, endpoint);
-			if (oneFieldString != null)
+			if (oneFieldString != null) {
 				return FormValidation.error(oneFieldString);
+			}
 			if (isStringValid(configurationFilePath) && !fileExists(configurationFilePath)) {
 				return FormValidation.error(Messages.fileNotFound());
 			}
@@ -268,11 +270,10 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 		}
 
 		private String validateOnlyOneField(final String val1, final String val2, final String endpoint) {
-			if (isDex(endpoint) && (val1.isEmpty() != val2.isEmpty())) {
+			if (isDex(endpoint) && (val1.isEmpty() == val2.isEmpty())) {
 				return Messages.onlyOne();
-			} else {
-				return null;
 			}
+			return null;
 		}
 
 		private boolean fileExists(String path) {

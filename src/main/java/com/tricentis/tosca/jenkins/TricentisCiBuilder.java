@@ -208,7 +208,6 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 	@Symbol("tricentisCI")
 	@Extension
 	public static class Descriptor extends BuildStepDescriptor<Builder> {
-
 		@SuppressWarnings("rawtypes")
 		@Override
 		public boolean isApplicable(final Class<? extends AbstractProject> jobType) {
@@ -245,40 +244,58 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 				@QueryParameter final String testEvents, @QueryParameter final String endpoint,
 				@QueryParameter final String configurationFilePath) throws IOException, ServletException {
 			project.checkPermission(Job.CONFIGURE);
-			if (isStringValid(testEvents) && !endpoint.toLowerCase().contains("distributionserverservice")) {
-				return FormValidation.warning(Messages.dexOnly());
+			String oneFieldString = validateOnlyOneField(testEvents, configurationFilePath, endpoint);
+			if (oneFieldString != null) {
+				return FormValidation.error(oneFieldString);
 			}
-			return validateOnlyOneField(testEvents, configurationFilePath);
+			if (isStringValid(testEvents) && !isDex(endpoint)) {
+				return FormValidation.error(Messages.dexOnly());
+			}
+			return FormValidation.ok();
 		}
 
 		public FormValidation doCheckConfigurationFilePath(@AncestorInPath final AbstractProject<?, ?> project,
-				@QueryParameter final String configurationFilePath, @QueryParameter final String testEvents)
-				throws IOException, ServletException {
+				@QueryParameter final String configurationFilePath, @QueryParameter final String testEvents,
+				@QueryParameter final String endpoint) throws IOException, ServletException {
 			project.checkPermission(Job.CONFIGURE);
+			String oneFieldString = validateOnlyOneField(testEvents, configurationFilePath, endpoint);
+			if (oneFieldString != null) {
+				return FormValidation.error(oneFieldString);
+			}
 			if (isStringValid(configurationFilePath) && !fileExists(configurationFilePath)) {
 				return FormValidation.error(Messages.fileNotFound());
 			}
-			return validateOnlyOneField(testEvents, configurationFilePath);
+			return FormValidation.ok();
 		}
 
-		private FormValidation validateOnlyOneField(final String val1, final String val2) {
-			return (val1.isEmpty() || val2.isEmpty()) ? FormValidation.ok() : FormValidation.error(Messages.onlyOne());
+		private String validateOnlyOneField(final String val1, final String val2, final String endpoint) {
+			if (isDex(endpoint) && (val1.isEmpty() == val2.isEmpty())) {
+				return Messages.onlyOne();
+			}
+			return null;
 		}
 
 		private boolean fileExists(String path) {
 			if (path.startsWith("$")) {
-				int firstForward = path.indexOf('/');
-				int firstBackward = path.indexOf('\\');
-				int firstSeparator = firstForward + firstBackward == -2 ? path.length() - 1
-						: firstForward < firstBackward && firstForward != -1 ? firstForward : firstBackward;
-				path = System.getenv(path.substring(1, firstSeparator)) + path.substring(firstSeparator);
+				String newPathString = path.replace('\\', '/');
+				int firstSeparator = newPathString.indexOf('/');
+				if (firstSeparator == -1) {
+					path = System.getenv(path.substring(1));
+				} else {
+					String expEnvVar = StringUtils.stripEnd(System.getenv(path.substring(1, firstSeparator)), "\\/");
+					path = expEnvVar + path.substring(firstSeparator);
+				}
 			}
-			File file = new File(path);
+			File file = new File(path.replace('\\', File.separatorChar).replace('/', File.separatorChar));
 			return file.exists() && file.isFile();
 		}
 
 		private boolean isStringValid(String value) {
 			return value != null && !value.trim().isEmpty();
+		}
+
+		private boolean isDex(String endpoint) {
+			return endpoint.toLowerCase().contains("managerservice.svc");
 		}
 
 	}

@@ -268,10 +268,10 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 		}
 
 		private String validateOnlyOneField(final String val1, final String val2, final String endpoint) {
-			if (isDex(endpoint)) {
-				return (val1.isEmpty() ^ val2.isEmpty()) ? null : Messages.onlyOne();
+			if (isDex(endpoint) && (val1.isEmpty() != val2.isEmpty())) {
+				return Messages.onlyOne();
 			} else {
-				return (val1.isEmpty() || val2.isEmpty()) ? null : Messages.justConfigFile();
+				return null;
 			}
 		}
 

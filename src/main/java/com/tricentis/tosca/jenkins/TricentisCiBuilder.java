@@ -208,7 +208,6 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 	@Symbol("tricentisCI")
 	@Extension
 	public static class Descriptor extends BuildStepDescriptor<Builder> {
-
 		@SuppressWarnings("rawtypes")
 		@Override
 		public boolean isApplicable(final Class<? extends AbstractProject> jobType) {
@@ -278,13 +277,16 @@ public class TricentisCiBuilder extends Builder implements SimpleBuildStep {
 
 		private boolean fileExists(String path) {
 			if (path.startsWith("$")) {
-				int firstForward = path.indexOf('/');
-				int firstBackward = path.indexOf('\\');
-				int firstSeparator = firstForward + firstBackward == -2 ? path.length() - 1
-						: firstForward < firstBackward && firstForward != -1 ? firstForward : firstBackward;
-				path = System.getenv(path.substring(1, firstSeparator)) + path.substring(firstSeparator);
+				String newPathString = path.replace('\\', '/');
+				int firstSeparator = newPathString.indexOf('/');
+				if (firstSeparator == -1) {
+					path = System.getenv(path.substring(1));
+				} else {
+					String expEnvVar = StringUtils.stripEnd(System.getenv(path.substring(1, firstSeparator)), "\\/");
+					path = expEnvVar + path.substring(firstSeparator);
+				}
 			}
-			File file = new File(path);
+			File file = new File(path.replace('\\', File.separatorChar).replace('/', File.separatorChar));
 			return file.exists() && file.isFile();
 		}
 

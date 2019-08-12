@@ -1,7 +1,9 @@
+/*
+ *
+ */
 package com.tricentis.tosca.jenkins;
 
 import java.io.IOException;
-
 import hudson.Launcher.ProcStarter;
 
 /**
@@ -9,13 +11,19 @@ import hudson.Launcher.ProcStarter;
  * {@link ProcStarter} and waits for its termination.
  *
  * @author Sergey Oplavin
- *
  */
 public class DefaultProcessExecutor implements ProcessExecutor {
-
-	@Override
-	public int execute(final ProcStarter starter) throws IOException, InterruptedException {
-		return starter.join();
-	}
-
+    /**
+     * Execute.
+     *
+     * @param starter the starter
+     * @return the int
+     * @throws IOException          Signals that an I/O exception has occurred.
+     * @throws InterruptedException the interrupted exception
+     */
+    @Override
+    public int execute(final ProcStarter starter)
+            throws IOException, InterruptedException {
+        return starter.join();
+    }
 }
